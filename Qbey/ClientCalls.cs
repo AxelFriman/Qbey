@@ -10,27 +10,15 @@ namespace Qbey
     public class ClientCalls : ModuleBase<SocketCommandContext>
     {
         [Command("test")]
-        [Summary("Says Hello, user!.")]
         public async Task test()
         {
             var eb = new EmbedBuilder();
-            eb.WithDescription("Вот тут можно[¹](https://google.com)");
-            await ReplyAsync(message: "Тут нельзя делать ссылки текстом. " + Context.User.Username, embed: eb.Build());
-        }
-
-        [Command("getIdByName")]
-        public async Task getIdByName(string name)
-        {
-            List<Snippet> res = await YoutubeProcessor.searchChannelByName(name);
-            foreach (var item in res)
-            {
-                var eb = new EmbedBuilder();
-                eb.WithTitle($"id: {item.channelId}");
-                await ReplyAsync(message: $"Title: {item.title}\nLink: {new Uri("https://www.youtube.com/channel/" + item.channelId)}\nID:", embed: eb.Build());
-            }
+            eb.WithDescription("Гугл[¹](https://google.com)");
+            await ReplyAsync(message: "Ты " + Context.User.Username, embed: eb.Build());
         }
 
         [Command("getDiscordInfo")]
+        [Summary("Shows Discord client ID and channel ID.")]
         public async Task getDiscordChannelId()
         {
             var eb = new EmbedBuilder();

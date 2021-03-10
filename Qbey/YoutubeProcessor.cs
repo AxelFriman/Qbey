@@ -13,85 +13,10 @@ namespace Qbey
 {
     class YoutubeProcessor
     {
-        //yeah yeah fix later TODO
         static string apiUrl = SettDriver.Sett.youTubeAPIURL;
         static string apiKey = SettDriver.Sett.youTubeAPIToken;
 
-
-        static public async Task<ChannelSearchResult> searchChannel(string channelName)
-        {
-            string requestUrl = apiUrl + $"search?part=snippet&q={channelName}&type=channel&key={apiKey}";
-            using (HttpResponseMessage response = await ApiGeneral.ApiClient.GetAsync(requestUrl))
-            {
-                if (response.IsSuccessStatusCode)
-                {
-                    var searchResults = await response.Content.ReadAsAsync<ChannelSearchResult>();
-                    return searchResults;
-                }
-                else
-                {
-                    throw new HttpRequestException(response.ReasonPhrase);
-                }
-            }
-        }
-
-        static public async Task<List<Snippet>> searchChannelByName(string channelName)
-        {
-            ChannelSearchResult searchResult;
-            try
-            {
-                searchResult = await searchChannel(channelName);
-            }
-            catch (HttpRequestException ex)
-            {
-                throw new HttpRequestException(ex.Message);
-            }
-            List<Snippet> result = new List<Snippet>();
-            foreach (ItemChannel res in searchResult.items)
-            {
-                result.Add(res.snippet);
-            }
-            return result;
-        }
-
-        static public async Task<string> isStreamUp(string channelId)
-        {
-            Console.WriteLine($"asking if stream up {channelId}");
-            string allowed = "-_";
-            if (!channelId.All(c => Char.IsLetterOrDigit(c) || allowed.Contains(c)))
-            {
-                throw new ArgumentException($"{channelId} contains not only letters and numbers.");
-            }
-            string requestUrl = apiUrl + $"search?part=snippet&channelId={channelId}&type=video&eventType=live&key={apiKey}";
-            using (HttpResponseMessage response = await ApiGeneral.ApiClient.GetAsync(requestUrl))
-            {
-                if (response.IsSuccessStatusCode)
-                {
-                    VideoSearchResult videoSearchResult = await response.Content.ReadAsAsync<VideoSearchResult>();
-                    return videoSearchResult.pageInfo.totalResults > 0 ? videoSearchResult.items.First().id.videoId : null;
-                }
-                else
-                {
-                    throw new HttpRequestException(response.ReasonPhrase);
-                }
-            }
-        }
-
-        public async Task CheckFollows(List<string> ChannelsToCheck)
-        {
-            Console.WriteLine($"{Thread.CurrentThread.ManagedThreadId} enters CheckFollows()");
-            foreach (string channelId in ChannelsToCheck)
-            {
-                Console.WriteLine($"ya zapustilsya {channelId}");
-                string videoId = await isStreamUp(channelId);
-                if (videoId != null)
-                {
-                    var sender = new InnerActions();
-                    //await sender.streamAlert(videoId);
-                }
-            }
-        }
-
+        //Asks API if the given video is a live broadcast. Costs 1 quota
         public static async Task<bool> isStream(string videoId)
         {
             Boolean isLive = false;
@@ -111,6 +36,7 @@ namespace Qbey
             return isLive;
         }
 
+        //Gets "/videos" page with webclient and parses response. Returns last video ID.
         public static async Task<string> getLastVideoFromWeb(string linkToChannelVideosTab)
         {
             string htmlCode = "";
