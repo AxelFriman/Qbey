@@ -16,13 +16,11 @@ namespace Qbey
             youtubeTimer.Elapsed += CheckYoutubeFollowsAsync; 
             youtubeTimer.Interval = 600000;
             youtubeTimer.Enabled = false;
-            InnerActions notifier = new InnerActions();
             return youtubeTimer;
         }
 
         static private async void CheckYoutubeFollowsAsync(Object source, ElapsedEventArgs e)
         {
-            InnerActions notifier = new InnerActions();
             foreach (var channel in SettDriver.Sett.follows)
             {
                 string lastVideoId = await YoutubeProcessor.getLastVideoFromWeb(channel.linkToVideosPage);
@@ -40,7 +38,7 @@ namespace Qbey
                     {
                         textToSend = $"Стрим {channel.channelName} закончился.";
                     }
-                    await notifier.sendAlert(textToSend);
+                    await InnerActions.sendAlert(textToSend);
                 }
             }
         }

@@ -10,15 +10,22 @@ namespace Qbey
     public class ClientCalls : ModuleBase<SocketCommandContext>
     {
         [Command("test")]
+        [RequireUserPermission(GuildPermission.Administrator)]
         public async Task test()
         {
             var eb = new EmbedBuilder();
             eb.WithDescription("Гугл[¹](https://google.com)");
-            await ReplyAsync(message: "Ты " + Context.User.Username, embed: eb.Build());
+            string txt = "";
+            foreach (var item in SettDriver.client.GetGuild(361294551899570176).CategoryChannels)
+            {
+                txt += item.Name + "\n";
+            }
+            await ReplyAsync(message: txt, embed: eb.Build());
         }
 
         [Command("getDiscordInfo")]
         [Summary("Shows Discord client ID and channel ID.")]
+        [RequireUserPermission(GuildPermission.Administrator)]
         public async Task getDiscordChannelId()
         {
             var eb = new EmbedBuilder();
