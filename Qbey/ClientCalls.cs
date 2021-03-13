@@ -50,5 +50,12 @@ namespace Qbey
             await ReplyAsync(message: $"ID of this category ({categ.Name}):", embed: eb.Build());
         }
 
+        [Command("forceCheck")]
+        [Summary("Checks if followed channels are live.")]
+        [RequireUserPermission(GuildPermission.Administrator)]
+        public void forceCheck()
+        {
+            InnerActions.CheckYoutubeFollowsAsync(null, EventArgs.Empty);
+        }
     }
 }

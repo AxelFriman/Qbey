@@ -16,7 +16,6 @@ namespace Qbey
             youtubeTimer.Elapsed += InnerActions.CheckYoutubeFollowsAsync;
             youtubeTimer.Interval = SettDriver.Sett.streamCheckIntervalSec;
             youtubeTimer.Enabled = true;
-            //InnerActions.CheckYoutubeFollowsAsync(null, EventArgs.Empty);
             return youtubeTimer;            
         }
 
