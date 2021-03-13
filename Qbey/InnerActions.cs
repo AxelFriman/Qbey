@@ -14,21 +14,27 @@ namespace Qbey
     {
         static public async Task sendAlert(string textToSend) 
         {
-            var channel = SettDriver.client.GetChannel(ulong.Parse(SettDriver.Sett.anounceChannel)) as ITextChannel;
+            var channel = SettDriver.client.GetChannel(SettDriver.Sett.anounceChannel) as ITextChannel;
             await channel.SendMessageAsync(textToSend);
         }
 
         static public SocketGuildChannel findChannelByName(string channelName)
         {
-            return SettDriver.client.GetGuild(ulong.Parse(SettDriver.Sett.client)).Channels.First(x => x.Name == channelName);
+            return SettDriver.client.GetGuild(SettDriver.Sett.client).Channels.First(x => x.Name == channelName);
         }
 
         static public async Task createChannelsAsync(string channelName)
         {
-            await SettDriver.client.GetGuild(ulong.Parse(SettDriver.Sett.client)).CreateTextChannelAsync(channelName, 
-                props => props.CategoryId = ulong.Parse(SettDriver.Sett.categoryToCreateTxtChannels)); //вот тут null TODO
-            await SettDriver.client.GetGuild(ulong.Parse(SettDriver.Sett.client)).CreateVoiceChannelAsync(channelName, 
-                props => props.CategoryId = ulong.Parse(SettDriver.Sett.categoryToCreateVoiceChannels));
+            if (SettDriver.Sett.categoryToCreateTxtChannels != 0)
+            {
+                await SettDriver.client.GetGuild(SettDriver.Sett.client).CreateTextChannelAsync(channelName,
+                    props => props.CategoryId = SettDriver.Sett.categoryToCreateTxtChannels); 
+            }
+            if (SettDriver.Sett.categoryToCreateVoiceChannels != 0)
+            {
+                await SettDriver.client.GetGuild(SettDriver.Sett.client).CreateVoiceChannelAsync(channelName,
+                    props => props.CategoryId = SettDriver.Sett.categoryToCreateVoiceChannels);
+            }
         }
 
         static public async void CheckYoutubeFollowsAsync(Object source, EventArgs e)

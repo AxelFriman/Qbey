@@ -41,11 +41,11 @@ namespace Qbey
 
     internal class Settings
     {
-        public string client { get; set; } //TODO try to use ulong
-        public string anounceChannel { get; set; }
+        public ulong client { get; set; } 
+        public ulong anounceChannel { get; set; }
         public int streamCheckIntervalSec { get; set; }
-        public string categoryToCreateTxtChannels { get; set; }
-        public string categoryToCreateVoiceChannels { get; set; }
+        public ulong categoryToCreateTxtChannels { get; set; }
+        public ulong categoryToCreateVoiceChannels { get; set; }
         public List<Follows> follows { get; set; }
         public string youTubeAPIURL { get; set; }
         public string youTubeAPIToken { get; set; }
