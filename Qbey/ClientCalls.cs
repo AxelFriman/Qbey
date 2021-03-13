@@ -16,14 +16,10 @@ namespace Qbey
         public async Task test()
         {
             var eb = new EmbedBuilder();
-            eb.WithDescription("Гугл[¹](https://google.com)");
-            string txt = "";
-            foreach (var item in SettDriver.client.GetGuild(361294551899570176).CategoryChannels)
-            {
-                txt += item.Name + "\n";
-            }
+            eb.WithDescription("[Войс](https://discord.gg/7YDNYxMy)");
+            string txt = "<#"+SettDriver.client.GetGuild(SettDriver.Sett.client).GetChannel(SettDriver.Sett.anounceChannel).Id + ">";
             await ReplyAsync(message: txt, embed: eb.Build());
-                    }
+        }
 
         [Command("getDiscordInfo")]
         [Summary("Shows Discord client ID and channel ID.")]
@@ -41,9 +37,9 @@ namespace Qbey
             //a channel doesn't know about it's category, have to find it out 
             var categ = Context.Guild.CategoryChannels.Where<SocketCategoryChannel>(categ =>
             {
-                return categ.Channels.Where<SocketGuildChannel>(ch => //searching for a categ
+                return categ.Channels.Where<SocketGuildChannel>(ch => //searching for a categ...
                 {
-                    return ch.Equals(Context.Channel); //which contains given channel
+                    return ch.Equals(Context.Channel); //...which contains given channel
                 }) is not null;
             }).First<SocketCategoryChannel>();
             eb.WithDescription(categ.Id.ToString());
@@ -53,7 +49,7 @@ namespace Qbey
         [Command("forceCheck")]
         [Summary("Checks if followed channels are live.")]
         [RequireUserPermission(GuildPermission.Administrator)]
-        public void forceCheck()
+        public async Task forceCheck()
         {
             InnerActions.CheckYoutubeFollowsAsync(null, EventArgs.Empty);
         }

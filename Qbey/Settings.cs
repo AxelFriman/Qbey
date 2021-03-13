@@ -10,7 +10,7 @@ namespace Qbey
 {
     static class SettDriver
     {
-        static public string PathToSett { get; set; } = Directory.GetCurrentDirectory() + "/config.json";
+        static public string PathToSett { get; set; } = Directory.GetCurrentDirectory() + "\\config.json";
         static public Settings Sett { get; private set; }
         static public DiscordSocketClient client { get; set; }
 
@@ -28,6 +28,10 @@ namespace Qbey
             }
             finally
             {
+                if (Sett is null)
+                {
+                    throw (new NullReferenceException("Invalid config.json format."));
+                }
                 if (Sett.streamCheckIntervalSec < 600000)
                 {
                     Sett.streamCheckIntervalSec = 600000;
@@ -43,10 +47,11 @@ namespace Qbey
     {
         public ulong client { get; set; } 
         public ulong anounceChannel { get; set; }
+        //public bool pingRolesOnAlert { get; set; }
         public int streamCheckIntervalSec { get; set; }
         public ulong categoryToCreateTxtChannels { get; set; }
         public ulong categoryToCreateVoiceChannels { get; set; }
-        public List<Follows> follows { get; set; }
+        public List<Follows> follows { get; set; } //TODO split follows and settings
         public string youTubeAPIURL { get; set; }
         public string youTubeAPIToken { get; set; }
         public string discordToken { get; set; }
@@ -56,6 +61,9 @@ namespace Qbey
             public int followId { get; set; }
             public string linkToVideosPage { get; set; }
             public string channelName { get; set; }
+            public ulong voiceChannel { get; set; }
+            public ulong textChannel { get; set; }
+            public string serverRole { get; set; } //TODO maybe shoud've made role id
         }
     }
 }

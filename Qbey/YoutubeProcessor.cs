@@ -50,10 +50,11 @@ namespace Qbey
             int startIndex = htmlCode.IndexOf(startString) + startString.Length;
             int endIndex = htmlCode.IndexOf(endString, startIndex);
             string jsonTxt = htmlCode.Substring(startIndex, endIndex - startIndex);
-            videosPage root = Newtonsoft.Json.JsonConvert.DeserializeObject<videosPage>(jsonTxt);
-            return root.contents.twoColumnBrowseResultsRenderer.Tabs[1].tabRenderer
+            videosPage root = Newtonsoft.Json.JsonConvert.DeserializeObject<videosPage>(jsonTxt); //TODO что если канал в бане
+            var videos = root.contents.twoColumnBrowseResultsRenderer.Tabs[1].tabRenderer
                 .content.sectionListRenderer.contents[0].itemSectionRenderer.contents[0]
-                .gridRenderer.items[0].gridVideoRenderer.videoId;
+                .gridRenderer;
+            return videos?.items[0].gridVideoRenderer.videoId;
         }
     }
 }

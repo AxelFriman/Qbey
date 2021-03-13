@@ -37,6 +37,11 @@ namespace Qbey
             {
                 ErrorEvent?.Invoke(new LogMessage(LogSeverity.Warning, "Program.MainAsync", e.Message));
             }
+            catch (NullReferenceException e)
+            {
+                ErrorEvent?.Invoke(new LogMessage(LogSeverity.Critical, "Program.MainAsync", e.Message));
+                throw;
+            }
 
             SettDriver.client = _client;
 

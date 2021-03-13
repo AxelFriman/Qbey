@@ -7,15 +7,17 @@ using Discord;
 using Discord.WebSocket;
 using Discord.Commands;
 using System.Timers;
+using Discord.Rest;
 
 namespace Qbey
 {
     static class InnerActions 
     {
-        static public async Task sendAlert(string textToSend) 
+        static public async Task sendAlert(string textToSend, EmbedBuilder eb = null) 
         {
             var channel = SettDriver.client.GetChannel(SettDriver.Sett.anounceChannel) as ITextChannel;
-            await channel.SendMessageAsync(textToSend);
+            var embed = eb?.Build();
+            await channel.SendMessageAsync(text: textToSend, embed: embed);
         }
 
         static public SocketGuildChannel findChannelByName(string channelName)
@@ -23,17 +25,29 @@ namespace Qbey
             return SettDriver.client.GetGuild(SettDriver.Sett.client).Channels.First(x => x.Name == channelName);
         }
 
-        static public async Task createChannelsAsync(string channelName)
+        static public async Task<List<RestGuildChannel>> createChannelsAsync(string channelName)
         {
+            List<RestGuildChannel> res = new List<RestGuildChannel>(); 
             if (SettDriver.Sett.categoryToCreateTxtChannels != 0)
             {
-                await SettDriver.client.GetGuild(SettDriver.Sett.client).CreateTextChannelAsync(channelName,
-                    props => props.CategoryId = SettDriver.Sett.categoryToCreateTxtChannels); 
+                var newTextChannel = await SettDriver.client.GetGuild(SettDriver.Sett.client).CreateTextChannelAsync(channelName,
+                    props => props.CategoryId = SettDriver.Sett.categoryToCreateTxtChannels);
+                res.Add(newTextChannel);
             }
             if (SettDriver.Sett.categoryToCreateVoiceChannels != 0)
             {
-                await SettDriver.client.GetGuild(SettDriver.Sett.client).CreateVoiceChannelAsync(channelName,
+                var newVoiceChannel = await SettDriver.client.GetGuild(SettDriver.Sett.client).CreateVoiceChannelAsync(channelName,
                     props => props.CategoryId = SettDriver.Sett.categoryToCreateVoiceChannels);
+                res.Add(newVoiceChannel);
+            }
+            return res;
+        }
+
+        static public async Task deleteChannelAsync(ulong channelId)
+        {
+            if (channelId > 0)
+            {
+                await SettDriver.client.GetGuild(SettDriver.Sett.client).GetChannel(channelId)?.DeleteAsync();
             }
         }
 
@@ -42,19 +56,56 @@ namespace Qbey
             foreach (var channel in SettDriver.Sett.follows)
             {
                 string lastVideoId = await YoutubeProcessor.getLastVideoFromWeb(channel.linkToVideosPage);
-                bool isOnline = await YoutubeProcessor.isStream(lastVideoId);
+                bool isOnline;
+                if (String.IsNullOrEmpty(lastVideoId))
+                {
+                    isOnline = false;
+                }
+                else
+                {
+                    isOnline = await YoutubeProcessor.isStream(lastVideoId);
+                }
                 bool wasOnline = HistoryDriver.getStatusById(channel.followId);
                 if (isOnline != wasOnline)
                 {
                     HistoryDriver.setStatusById(channel.followId, isOnline);
                     if (isOnline)
                     {
-                        await sendAlert("Начался стрим https://www.youtube.com/watch?v=" + lastVideoId);
-                        await createChannelsAsync(channel.channelName);
+                        var createdChannels = await createChannelsAsync(channel.channelName);
+                        string txtToEmbed = String.Empty;
+                        var eb = new EmbedBuilder();
+                        foreach (var ch in createdChannels)
+                        {
+                            if (ch is RestTextChannel)
+                            {
+                                txtToEmbed += $"\n<#{ch.Id}>";
+                                channel.textChannel = ch.Id;
+                            }
+                            if (ch is RestVoiceChannel)
+                            {
+                                var invite = await (ch as IVoiceChannel).CreateInviteAsync();
+                                txtToEmbed += $"\n[{invite.ChannelName} (Войс)]({invite.Url})";
+                                channel.voiceChannel = ch.Id;
+                            }
+                        }
+                        if (!String.IsNullOrEmpty(txtToEmbed))
+                        {
+                            txtToEmbed = "Смотреть вместе: " + txtToEmbed;
+                            eb.WithDescription(txtToEmbed);
+                        }
+                        string textForAlert = $"Начался стрим {channel.channelName}\nhttps://www.youtube.com/watch?v={lastVideoId}";
+                        if (!String.IsNullOrEmpty(channel.serverRole)/* && SettDriver.Sett.pingRolesOnAlert*/)
+                        {
+                            textForAlert = $"@{channel.serverRole} " + textForAlert;
+                        }
+                        await sendAlert(textForAlert, eb);
                     }
                     else
                     {
-                        //TODO удаление каналов
+                        await deleteChannelAsync(channel.textChannel);
+                        channel.textChannel = 0;
+                        await deleteChannelAsync(channel.voiceChannel);
+                        channel.voiceChannel = 0;
                         await sendAlert($"Стрим {channel.channelName} окончен.");
                     }
                 }

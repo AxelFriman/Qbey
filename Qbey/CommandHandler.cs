@@ -50,14 +50,10 @@ namespace Qbey
 
             // Execute the command with the command context we just
             // created, along with the service provider for precondition checks.
-            var res = await _commands.ExecuteAsync(
+            await _commands.ExecuteAsync(
                 context: context,
                 argPos: argPos,
                 services: null);
-            if (!res.IsSuccess)
-            {
-                Console.WriteLine(res.Error + " " + res.ErrorReason);
-            }
         }
     }
 }
