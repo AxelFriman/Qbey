@@ -23,27 +23,58 @@ namespace Qbey
             _client = new DiscordSocketClient(new DiscordSocketConfig
             {
                 LogLevel = LogSeverity.Verbose
-            });            
+            });
 
-            SettDriver.loadSett();
+            try
+            {
+                SettDriver.loadSett();
+            }
+            catch (IOException)
+            {
+                ErrorEvent?.Invoke(new LogMessage(LogSeverity.Warning, "Program.MainAsync", "Empty config file was created."));
+            }
+            catch (ArgumentOutOfRangeException e)
+            {
+                ErrorEvent?.Invoke(new LogMessage(LogSeverity.Warning, "Program.MainAsync", e.Message));
+            }
+
             SettDriver.client = _client;
-            var token = SettDriver.Sett.discordToken;
 
-            HistoryDriver.makeNewHistoryRecords();
+            string token = "";
+
+            try
+            {
+                token = SettDriver.Sett.discordToken;
+            }
+            catch (NullReferenceException)
+            {
+                ErrorEvent?.Invoke(new LogMessage(LogSeverity.Critical, "Program.MainAsync", "Discord Token is empty."));
+                throw;
+            }
+
+            try
+            {
+                HistoryDriver.addFollowsToHistory();
+            }
+            catch (NullReferenceException)
+            {
+                ErrorEvent?.Invoke(new LogMessage(LogSeverity.Warning, "Program.MainAsync", "Unable to add follows to history."));
+            }
+            catch (IOException)
+            {
+                ErrorEvent?.Invoke(new LogMessage(LogSeverity.Warning, "Program.MainAsync", "Empty history file was created."));
+            }
 
             await _client.LoginAsync(TokenType.Bot, token);
             await _client.StartAsync();
 
-            //var commSer = new CommandService();
-            //await commSer.AddModulesAsync(assembly: Assembly.GetExecutingAssembly(),
-            //                        services: null);
             var commandService = new CommandService(new CommandServiceConfig
             {
                 LogLevel = LogSeverity.Verbose
             });
 
             var commHlr = new CommandHandler(_client, commandService);
-            await commHlr.InstallCommandsAsync();
+            await commHlr.InstallCommandsAsync(); 
 
             //logs
             var logs = new LoggingService(_client, commandService);
@@ -54,5 +85,7 @@ namespace Qbey
             // Block this task until the program is closed.
             await Task.Delay(-1);
         }
+
+        public static event Func<LogMessage, Task> ErrorEvent;
     }
 }

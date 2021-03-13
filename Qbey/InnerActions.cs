@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.WebSocket;
 using Discord.Commands;
+using System.Timers;
 
 namespace Qbey
 {
@@ -13,10 +14,7 @@ namespace Qbey
     {
         static public async Task sendAlert(string textToSend) 
         {
-            //await SettDriver.client.GetGuild(ulong.Parse(SettDriver.Sett.client)).GetTextChannel(ulong.Parse(SettDriver.Sett.anounceChannel))
-            //    .SendMessageAsync(textToSend);
             var channel = SettDriver.client.GetChannel(ulong.Parse(SettDriver.Sett.anounceChannel)) as ITextChannel;
-            //if channel null
             await channel.SendMessageAsync(textToSend);
         }
 
@@ -25,12 +23,36 @@ namespace Qbey
             return SettDriver.client.GetGuild(ulong.Parse(SettDriver.Sett.client)).Channels.First(x => x.Name == channelName);
         }
 
-        static public async Task createChannelAsync(string channelName)
+        static public async Task createChannelsAsync(string channelName)
         {
-            var textChannelProps = new TextChannelProperties();
-            var test = SettDriver.client.GetChannel(1) as ITextChannel; //можно сделать getcategorychannels, прописать айди категорий в настройки, не забыть внести изменения в getDiscordInfo, 
-            await SettDriver.client.GetGuild(ulong.Parse(SettDriver.Sett.client)).CreateTextChannelAsync(channelName);
-            await SettDriver.client.GetGuild(ulong.Parse(SettDriver.Sett.client)).CreateVoiceChannelAsync(channelName);
+            await SettDriver.client.GetGuild(ulong.Parse(SettDriver.Sett.client)).CreateTextChannelAsync(channelName, 
+                props => props.CategoryId = ulong.Parse(SettDriver.Sett.categoryToCreateTxtChannels)); //вот тут null TODO
+            await SettDriver.client.GetGuild(ulong.Parse(SettDriver.Sett.client)).CreateVoiceChannelAsync(channelName, 
+                props => props.CategoryId = ulong.Parse(SettDriver.Sett.categoryToCreateVoiceChannels));
+        }
+
+        static public async void CheckYoutubeFollowsAsync(Object source, EventArgs e)
+        {
+            foreach (var channel in SettDriver.Sett.follows)
+            {
+                string lastVideoId = await YoutubeProcessor.getLastVideoFromWeb(channel.linkToVideosPage);
+                bool isOnline = await YoutubeProcessor.isStream(lastVideoId);
+                bool wasOnline = HistoryDriver.getStatusById(channel.followId);
+                if (isOnline != wasOnline)
+                {
+                    HistoryDriver.setStatusById(channel.followId, isOnline);
+                    if (isOnline)
+                    {
+                        await sendAlert("Начался стрим https://www.youtube.com/watch?v=" + lastVideoId);
+                        await createChannelsAsync(channel.channelName);
+                    }
+                    else
+                    {
+                        //TODO удаление каналов
+                        await sendAlert($"Стрим {channel.channelName} окончен.");
+                    }
+                }
+            }
         }
     }
 }

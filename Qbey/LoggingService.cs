@@ -15,6 +15,7 @@ namespace Qbey
         {
             client.Log += LogToConsole;
             command.Log += LogToConsole;
+            Program.ErrorEvent += LogToConsole; 
         }
 
         private Task LogToConsole(LogMessage message)

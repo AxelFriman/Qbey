@@ -13,34 +13,12 @@ namespace Qbey
         static public System.Timers.Timer Init()
         {
             var youtubeTimer = new System.Timers.Timer();
-            youtubeTimer.Elapsed += CheckYoutubeFollowsAsync; 
-            youtubeTimer.Interval = 600000;
-            youtubeTimer.Enabled = false;
-            return youtubeTimer;
+            youtubeTimer.Elapsed += InnerActions.CheckYoutubeFollowsAsync;
+            youtubeTimer.Interval = SettDriver.Sett.streamCheckIntervalSec;
+            youtubeTimer.Enabled = true;
+            //InnerActions.CheckYoutubeFollowsAsync(null, EventArgs.Empty);
+            return youtubeTimer;            
         }
 
-        static private async void CheckYoutubeFollowsAsync(Object source, ElapsedEventArgs e)
-        {
-            foreach (var channel in SettDriver.Sett.follows)
-            {
-                string lastVideoId = await YoutubeProcessor.getLastVideoFromWeb(channel.linkToVideosPage);
-                bool isOnline = await YoutubeProcessor.isStream(lastVideoId);
-                bool wasOnline = HistoryDriver.getStatusById(channel.followId);
-                if (isOnline != wasOnline)
-                {
-                    HistoryDriver.setStatusById(channel.followId, isOnline);
-                    string textToSend = string.Empty;
-                    if (isOnline)
-                    {
-                        textToSend = "Начался стрим https://www.youtube.com/watch?v=" + lastVideoId;
-                    }
-                    else
-                    {
-                        textToSend = $"Стрим {channel.channelName} закончился.";
-                    }
-                    await InnerActions.sendAlert(textToSend);
-                }
-            }
-        }
     }
 }

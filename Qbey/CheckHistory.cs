@@ -21,7 +21,7 @@ namespace Qbey
             return History.Find(x => x.followId == followId).isOnline;
         }
 
-        static public void makeNewHistoryRecords()
+        static public void addFollowsToHistory()
         {
             try
             {
@@ -44,7 +44,20 @@ namespace Qbey
             }
         }
 
-        static public void loadHistory() => History = Newtonsoft.Json.JsonConvert.DeserializeObject<List<CheckHistory>>(File.ReadAllText(HistoryDriver.PathToHistory));
+        static public void loadHistory()
+        {
+            try
+            {
+                History = Newtonsoft.Json.JsonConvert.DeserializeObject<List<CheckHistory>>(File.ReadAllText(HistoryDriver.PathToHistory));
+            }
+            catch (IOException) //no file or no access
+            {
+                History = new List<CheckHistory>() { new CheckHistory() };
+                saveHistory();
+                throw;
+            }
+        }
+
         static public void saveHistory() => File.WriteAllText(PathToHistory, Newtonsoft.Json.JsonConvert.SerializeObject(History));
     }
 
