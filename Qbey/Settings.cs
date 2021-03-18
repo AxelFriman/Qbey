@@ -10,7 +10,7 @@ namespace Qbey
 {
     static class SettDriver
     {
-        static public string PathToSett { get; set; } = Directory.GetCurrentDirectory() + "/config.json";
+        static public string PathToSett { get; set; } = "/config.json";
         static public Settings Sett { get; private set; }
         static public DiscordSocketClient client { get; set; }
 
