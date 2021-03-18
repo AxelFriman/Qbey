@@ -88,6 +88,7 @@ namespace Qbey
                                 channel.voiceChannel = ch.Id;
                             }
                         }
+                        SettDriver.saveSett();
                         if (!String.IsNullOrEmpty(txtToEmbed))
                         {
                             txtToEmbed = "Смотреть вместе: " + txtToEmbed;
@@ -96,7 +97,7 @@ namespace Qbey
                         string textForAlert = $"Начался стрим {channel.channelName}\nhttps://www.youtube.com/watch?v={lastVideoId}";
                         if (!String.IsNullOrEmpty(channel.serverRole)/* && SettDriver.Sett.pingRolesOnAlert*/)
                         {
-                            textForAlert = $"@{channel.serverRole} " + textForAlert;
+                            textForAlert = $"<@{channel.serverRole}> " + textForAlert;
                         }
                         await sendAlert(textForAlert, eb);
                     }
