@@ -42,6 +42,11 @@ namespace Qbey
                 ErrorEvent?.Invoke(new LogMessage(LogSeverity.Critical, "Program.MainAsync", e.Message));
                 throw;
             }
+            catch (ArgumentException e)
+            {
+                ErrorEvent?.Invoke(new LogMessage(LogSeverity.Critical, "Program.MainAsync", e.Message));
+                throw;
+            }
 
             SettDriver.client = _client;
 

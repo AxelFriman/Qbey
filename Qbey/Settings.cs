@@ -32,6 +32,10 @@ namespace Qbey
                 {
                     throw (new NullReferenceException("Invalid config.json format."));
                 }
+                if (String.IsNullOrWhiteSpace(Sett.discordToken))
+                {
+                    throw (new ArgumentException("Discord token is empty."));
+                }
                 if (Sett.streamCheckIntervalSec < 600000)
                 {
                     Sett.streamCheckIntervalSec = 600000;
