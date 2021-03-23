@@ -51,7 +51,7 @@ namespace Qbey
             int startIndex = htmlCode.IndexOf(startString) + startString.Length;
             int endIndex = htmlCode.IndexOf(endString, startIndex);
             string jsonTxt = htmlCode.Substring(startIndex, endIndex - startIndex);
-            videosPage root = Newtonsoft.Json.JsonConvert.DeserializeObject<videosPage>(jsonTxt); //TODO что если канал в бане
+            videosPage root = Newtonsoft.Json.JsonConvert.DeserializeObject<videosPage>(jsonTxt); 
             GridRenderer videos = null;
             try
             {

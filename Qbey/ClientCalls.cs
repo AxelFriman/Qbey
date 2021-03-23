@@ -17,7 +17,7 @@ namespace Qbey
         {
             var eb = new EmbedBuilder();
             eb.WithDescription("[Войс](https://discord.gg/7YDNYxMy)");
-            string txt = "<#"+SettDriver.client.GetGuild(SettDriver.Sett.client).GetChannel(SettDriver.Sett.anounceChannel).Id + ">";
+            string txt = "<@&425700980596670465>";
             await ReplyAsync(message: txt, embed: eb.Build());
         }
 

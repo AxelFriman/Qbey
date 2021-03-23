@@ -94,10 +94,10 @@ namespace Qbey
                             txtToEmbed = "Смотреть вместе: " + txtToEmbed;
                             eb.WithDescription(txtToEmbed);
                         }
-                        string textForAlert = $"Начался стрим {channel.channelName}\nhttps://www.youtube.com/watch?v={lastVideoId}";
-                        if (!String.IsNullOrEmpty(channel.serverRole)/* && SettDriver.Sett.pingRolesOnAlert*/)
+                        string textForAlert = $"{channel.channelName}\nhttps://www.youtube.com/watch?v={lastVideoId} начала стрим.";
+                        if (channel.serverRoleId != 0 && SettDriver.Sett.pingRolesOnAlert)
                         {
-                            textForAlert = $"<@{channel.serverRole}> " + textForAlert;
+                            textForAlert = $"<@&{channel.serverRoleId}> " + textForAlert;
                         }
                         await sendAlert(textForAlert, eb);
                     }
@@ -107,7 +107,7 @@ namespace Qbey
                         channel.textChannel = 0;
                         await deleteChannelAsync(channel.voiceChannel);
                         channel.voiceChannel = 0;
-                        await sendAlert($"Стрим {channel.channelName} окончен.");
+                        await sendAlert($"{channel.channelName} закончила стрим.");
                     }
                 }
             }

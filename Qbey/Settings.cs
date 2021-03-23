@@ -68,7 +68,7 @@ namespace Qbey
             public string channelName { get; set; }
             public ulong voiceChannel { get; set; }
             public ulong textChannel { get; set; }
-            public string serverRole { get; set; } //TODO maybe shoud've made role id
+            public ulong serverRoleId { get; set; }
         }
     }
 }
