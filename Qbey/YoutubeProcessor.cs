@@ -7,6 +7,7 @@ using System.Net.Http.Formatting;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Discord;
 using Newtonsoft.Json;
 
 namespace Qbey
@@ -51,10 +52,20 @@ namespace Qbey
             int endIndex = htmlCode.IndexOf(endString, startIndex);
             string jsonTxt = htmlCode.Substring(startIndex, endIndex - startIndex);
             videosPage root = Newtonsoft.Json.JsonConvert.DeserializeObject<videosPage>(jsonTxt); //TODO что если канал в бане
-            var videos = root.contents.twoColumnBrowseResultsRenderer.Tabs[1].tabRenderer
-                .content.sectionListRenderer.contents[0].itemSectionRenderer.contents[0]
-                .gridRenderer;
+            GridRenderer videos = null;
+            try
+            {
+                 videos = root.contents.twoColumnBrowseResultsRenderer.Tabs[1].tabRenderer
+                    .content.sectionListRenderer.contents[0].itemSectionRenderer.contents[0]
+                    .gridRenderer;
+            }
+            catch (NullReferenceException e)
+            {
+                ErrorEvent?.Invoke(new LogMessage(LogSeverity.Error, "YoutubeProcessor.getLastVideoFromWeb", $"Unable to serialize a videos page.\nChannel: {linkToChannelVideosTab}\nResponsed json:{jsonTxt}"));
+            }
             return videos?.items[0].gridVideoRenderer.videoId;
         }
+
+        public static event Func<LogMessage, Task> ErrorEvent;
     }
 }
