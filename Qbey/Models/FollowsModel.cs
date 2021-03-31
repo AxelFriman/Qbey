@@ -8,7 +8,7 @@ namespace Qbey.Models
 {
     class FollowsModel
     {
-        public List<Follows> follows { get; set; } 
+        public List<Follows> follows { get; set; } = new List<Follows>() { new Follows() };
         public class Follows
         {
             public int followId { get; set; }

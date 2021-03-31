@@ -15,8 +15,6 @@ namespace Qbey.Models
         public int streamCheckIntervalSec { get; set; }
         public ulong categoryToCreateTxtChannels { get; set; }
         public ulong categoryToCreateVoiceChannels { get; set; }
-        //public string youTubeAPIURL { get; set; }
         public string youTubeAPIToken { get; set; }
-        //public string discordToken { get; set; }
     }
 }
