@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Qbey
 {
-    static class HistoryDriver
+    static class HistoryDriver //TODO move to follows.lastStatus
     {
         static public string PathToHistory { get; set; } = Directory.GetCurrentDirectory() + "/checkHistory.json";
         static public List<CheckHistory> History { get; private set; }

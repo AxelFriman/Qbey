@@ -8,6 +8,7 @@ using Discord;
 using Discord.WebSocket;
 using Discord.Commands;
 using System.IO;
+using Qbey.SettingsControllers;
 
 namespace Qbey
 {
@@ -17,7 +18,8 @@ namespace Qbey
             => new Program().MainAsync().GetAwaiter().GetResult();
 
         private DiscordSocketClient _client;
-
+        //internal Dictionary<ulong, List<ISettings>> guidsSettings;
+        //internal GlobalConfigSettings config = new GlobalConfigSettings("config.json"); 
         public async Task MainAsync()
         {
             _client = new DiscordSocketClient(new DiscordSocketConfig
