@@ -1,4 +1,5 @@
-﻿using Qbey.Models;
+﻿using Discord.WebSocket;
+using Qbey.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,20 +10,35 @@ namespace Qbey.SettingsControllers
 {
     class GlobalConfigSettings : BaseSettings<GlobalConfigModel>
     {
-        public override GlobalConfigModel Sett
+        private static GlobalConfigSettings _instance;
+        private GlobalConfigSettings(string jsonPath) : base(jsonPath) { }
+        private GlobalConfigSettings(string jsonPath, GlobalConfigModel sett) : base(jsonPath, sett) { }
+        public static GlobalConfigSettings GetInstance(string jsonPath, GlobalConfigModel sett)
         {
-            get => base.Sett;
-            protected set
+            if (_instance is null)
             {
-                if (string.IsNullOrWhiteSpace(value.discordToken))
-                {
-                    string errTxt = "Discord token must not be empty.";
-                    throw new ArgumentException(errTxt);
-                }
-                base.Sett = value;
+                _instance = new GlobalConfigSettings(jsonPath, sett);
             }
+
+            return _instance;
         }
-        public GlobalConfigSettings(string jsonPath) : base(jsonPath) { }
-        public GlobalConfigSettings(string jsonPath, GlobalConfigModel sett) : base(jsonPath, sett) { }
+        public static GlobalConfigSettings GetInstance(string jsonPath)
+        {
+            if (_instance is null)
+            {
+                _instance = new GlobalConfigSettings(jsonPath);
+            }
+
+            return _instance;
+        }
+        public static GlobalConfigSettings GetInstance()
+        {
+            if (_instance is null)
+            {
+                _instance = new GlobalConfigSettings("asd");
+            }
+
+            return _instance;
+        }
     }
 }

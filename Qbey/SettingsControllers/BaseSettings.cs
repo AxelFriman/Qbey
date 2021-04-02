@@ -16,7 +16,8 @@ namespace Qbey
         {
             get { loadSett(); return _sett; }
             protected set => _sett = value;
-        } //TODO teach models how to smart initialize
+        }
+        public BaseSettings() : this(typeof(TSettType).Name) { }
         public BaseSettings(string jsonPath)
         {
             JsonFile = new FileInfo(jsonPath);
