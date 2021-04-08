@@ -59,7 +59,7 @@ namespace Qbey
                     .content.sectionListRenderer.contents[0].itemSectionRenderer.contents[0]
                     .gridRenderer;
             }
-            catch (NullReferenceException e)
+            catch (NullReferenceException)
             {
                 ErrorEvent?.Invoke(new LogMessage(LogSeverity.Error, "YoutubeProcessor.getLastVideoFromWeb", $"Unable to serialize a videos page.\nChannel: {linkToChannelVideosTab}\nResponsed json:{jsonTxt}"));
             }

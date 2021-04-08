@@ -10,35 +10,20 @@ namespace Qbey.SettingsControllers
 {
     class GlobalConfigSettings : BaseSettings<GlobalConfigModel>
     {
-        private static GlobalConfigSettings _instance;
-        private GlobalConfigSettings(string jsonPath) : base(jsonPath) { }
-        private GlobalConfigSettings(string jsonPath, GlobalConfigModel sett) : base(jsonPath, sett) { }
-        public static GlobalConfigSettings GetInstance(string jsonPath, GlobalConfigModel sett)
+        public override GlobalConfigModel Sett
         {
-            if (_instance is null)
+            get => base.Sett;
+            protected set
             {
-                _instance = new GlobalConfigSettings(jsonPath, sett);
+                if (string.IsNullOrWhiteSpace(value.discordToken))
+                {
+                    string errTxt = "Discord token must not be empty.";
+                    throw new ArgumentException(errTxt);
+                }
+                base.Sett = value;
             }
-
-            return _instance;
         }
-        public static GlobalConfigSettings GetInstance(string jsonPath)
-        {
-            if (_instance is null)
-            {
-                _instance = new GlobalConfigSettings(jsonPath);
-            }
-
-            return _instance;
-        }
-        public static GlobalConfigSettings GetInstance()
-        {
-            if (_instance is null)
-            {
-                _instance = new GlobalConfigSettings("asd");
-            }
-
-            return _instance;
-        }
+        public GlobalConfigSettings(string jsonPath) : base(jsonPath) { }
+        public GlobalConfigSettings(string jsonPath, GlobalConfigModel sett) : base(jsonPath, sett) { }
     }
 }

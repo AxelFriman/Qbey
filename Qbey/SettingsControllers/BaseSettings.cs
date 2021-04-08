@@ -17,7 +17,6 @@ namespace Qbey
             get { loadSett(); return _sett; }
             protected set => _sett = value;
         }
-        public BaseSettings() : this(typeof(TSettType).Name) { }
         public BaseSettings(string jsonPath)
         {
             JsonFile = new FileInfo(jsonPath);
@@ -38,13 +37,13 @@ namespace Qbey
             }
             catch (Exception ex) when (ex is DirectoryNotFoundException || ex is FileNotFoundException)
             {
-                jsonTxt = JsonConvert.SerializeObject(Sett);
+                jsonTxt = JsonConvert.SerializeObject(_sett);
                 saveSett();
                 OnError($"File {JsonFile.FullName} wasn't found. An empty one has been created.");
             }
             try
             {
-                Sett = JsonConvert.DeserializeObject<TSettType>(jsonTxt);
+                _sett = JsonConvert.DeserializeObject<TSettType>(jsonTxt);
             }
             catch (ArgumentException e)
             {
@@ -52,7 +51,7 @@ namespace Qbey
                 throw;
             }
 
-            if (Sett is null)
+            if (_sett is null)
             {
                 throw (new NullReferenceException("Invalid config.json format."));
             }
