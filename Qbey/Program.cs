@@ -9,6 +9,7 @@ using Discord.WebSocket;
 using Discord.Commands;
 using System.IO;
 using Qbey.SettingsControllers;
+using System.Timers;
 
 namespace Qbey
 {
@@ -44,7 +45,12 @@ namespace Qbey
 
             var logs = new LoggingService(_client, commandService);
 
-            System.Timers.Timer youtubeTimer = YoutubeCheckTimer.Init();
+            //TODO move this away from here
+            Dictionary<ulong, Timer> timers = new Dictionary<ulong, Timer>();
+            foreach (var setts in cfg.GuildsSettings)
+            {
+                timers.Add(setts.Key, YoutubeCheckTimer.Create(setts.Key));
+            }
             await Task.Delay(-1);
         }
 

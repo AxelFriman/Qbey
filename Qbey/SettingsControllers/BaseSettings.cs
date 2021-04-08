@@ -60,7 +60,7 @@ namespace Qbey
         public void saveSett(TSettType settToSave)
         {
             JsonFile?.Directory.Create();
-            File.WriteAllText(JsonFile.FullName, JsonConvert.SerializeObject(settToSave));
+            File.WriteAllText(JsonFile.FullName, JsonConvert.SerializeObject(settToSave ?? new TSettType()));
         }
 
         protected virtual void OnError(string msg)
