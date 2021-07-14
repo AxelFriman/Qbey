@@ -8,6 +8,8 @@ using Discord;
 using Discord.WebSocket;
 using Discord.Commands;
 using System.IO;
+using Qbey.SettingsControllers;
+using System.Timers;
 
 namespace Qbey
 {
@@ -16,66 +18,21 @@ namespace Qbey
         static void Main(string[] args)
             => new Program().MainAsync().GetAwaiter().GetResult();
 
-        private DiscordSocketClient _client;
-
         public async Task MainAsync()
         {
-            _client = new DiscordSocketClient(new DiscordSocketConfig
+            DiscordSocketClient _client = new DiscordSocketClient(new DiscordSocketConfig
             {
                 LogLevel = LogSeverity.Verbose
             });
 
-            try
-            {
-                SettDriver.loadSett();
-            }
-            catch (IOException)
-            {
-                ErrorEvent?.Invoke(new LogMessage(LogSeverity.Warning, "Program.MainAsync", "Empty config file was created."));
-            }
-            catch (ArgumentOutOfRangeException e)
-            {
-                ErrorEvent?.Invoke(new LogMessage(LogSeverity.Warning, "Program.MainAsync", e.Message));
-            }
-            catch (NullReferenceException e)
-            {
-                ErrorEvent?.Invoke(new LogMessage(LogSeverity.Critical, "Program.MainAsync", e.Message));
-                throw;
-            }
-            catch (ArgumentException e)
-            {
-                ErrorEvent?.Invoke(new LogMessage(LogSeverity.Critical, "Program.MainAsync", e.Message));
-                throw;
-            }
+            var cfg = MainConfig.Instance;
+            cfg.DiscordClient = _client;
+            cfg.GlobalAppConfig = new GlobalConfigSettings("config.json");
+            var globalCfg = cfg.GlobalAppConfig.Sett;
 
-            SettDriver.client = _client;
+            _client.Ready += async () => { LoadSettigs(_client, cfg); };
 
-            string token = "";
-
-            try
-            {
-                token = SettDriver.Sett.discordToken;
-            }
-            catch (NullReferenceException)
-            {
-                ErrorEvent?.Invoke(new LogMessage(LogSeverity.Critical, "Program.MainAsync", "Discord Token is empty."));
-                throw;
-            }
-
-            try
-            {
-                HistoryDriver.addFollowsToHistory();
-            }
-            catch (NullReferenceException)
-            {
-                ErrorEvent?.Invoke(new LogMessage(LogSeverity.Warning, "Program.MainAsync", "Unable to add follows to history."));
-            }
-            catch (IOException)
-            {
-                ErrorEvent?.Invoke(new LogMessage(LogSeverity.Warning, "Program.MainAsync", "Empty history file was created."));
-            }
-
-            await _client.LoginAsync(TokenType.Bot, token);
+            await _client.LoginAsync(TokenType.Bot, globalCfg.discordToken);
             await _client.StartAsync();
 
             var commandService = new CommandService(new CommandServiceConfig
@@ -86,14 +43,41 @@ namespace Qbey
             var commHlr = new CommandHandler(_client, commandService);
             await commHlr.InstallCommandsAsync(); 
 
-            //logs
             var logs = new LoggingService(_client, commandService);
 
-            //timers 
-            System.Timers.Timer youtubeTimer = YoutubeCheckTimer.Init();
-            
-            // Block this task until the program is closed.
             await Task.Delay(-1);
+        }
+
+        private void LoadSettigs(DiscordSocketClient client, MainConfig config)
+        {
+            foreach (var guild in client.Guilds)
+            {
+                try
+                {
+                    var newConfig = new GuildConfigSettings(guild.Id + "/config.json");
+                    config.GuildsSettings.Add(guild.Id, newConfig);
+                }
+                catch (NullReferenceException)
+                {
+                    ErrorEvent?.Invoke(new LogMessage(LogSeverity.Error, "LoadSettings", $"Unable to load server settings for {guild.Name} ({guild.Id})"));
+                };
+                try
+                {
+                    var newFollows = new FollowsSettings(guild.Id + "/follows.json");
+                    config.GuildsFollows.Add(guild.Id, newFollows);
+                }
+                catch (NullReferenceException)
+                {
+                    ErrorEvent?.Invoke(new LogMessage(LogSeverity.Error, "LoadSettings", $"Unable to load follows for {guild.Name} ({guild.Id})"));
+                }
+            }
+
+            //TODO move this away from here
+            Dictionary<ulong, Timer> timers = new Dictionary<ulong, Timer>();
+            foreach (var setts in MainConfig.Instance.GuildsSettings)
+            {
+                timers.Add(setts.Key, YoutubeCheckTimer.Create(setts.Key));
+            }
         }
 
         public static event Func<LogMessage, Task> ErrorEvent;

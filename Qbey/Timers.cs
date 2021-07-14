@@ -1,23 +1,22 @@
-﻿using System;
+﻿using Qbey.SettingsControllers;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
 
 namespace Qbey
 {
-    static class YoutubeCheckTimer
+    static public class YoutubeCheckTimer
     {
-        static public System.Timers.Timer Init()
+        static public Timer Create(ulong guild)
         {
-            var youtubeTimer = new System.Timers.Timer();
-            youtubeTimer.Elapsed += InnerActions.CheckYoutubeFollowsAsync;
-            youtubeTimer.Interval = SettDriver.Sett.streamCheckIntervalSec;
-            youtubeTimer.Enabled = SettDriver.Sett.enableAutoCheck;
-            return youtubeTimer;            
+            var youtubeTimer = new Timer();
+            youtubeTimer.Elapsed += (sender, e) => InnerActions.CheckYoutubeFollowsAsync(guild);
+            youtubeTimer.Interval = MainConfig.Instance.GuildsSettings[guild].Sett.streamCheckIntervalSec * 1000;
+            youtubeTimer.Enabled = MainConfig.Instance.GuildsSettings[guild].Sett.enableAutoCheck; 
+            return youtubeTimer;
         }
-
     }
 }

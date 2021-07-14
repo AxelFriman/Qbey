@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
 using System.Linq;
+using Qbey.SettingsControllers;
 
 namespace Qbey
 {
@@ -14,11 +15,11 @@ namespace Qbey
         [Command("test")]
         [RequireUserPermission(GuildPermission.Administrator)]
         public async Task test()
-        {
-            var eb = new EmbedBuilder();
-            eb.WithDescription("[Войс](https://discord.gg/7YDNYxMy)");
-            string txt = "<@&425700980596670465>";
-            await ReplyAsync(message: txt, embed: eb.Build());
+        {            
+            foreach (var item in MainConfig.Instance.DiscordClient.Guilds)
+            {
+                await ReplyAsync(message: item.Id.ToString());
+            }
         }
 
         [Command("getDiscordInfo")]
@@ -51,7 +52,7 @@ namespace Qbey
         [RequireUserPermission(GuildPermission.Administrator)]
         public async Task forceCheck()
         {
-            InnerActions.CheckYoutubeFollowsAsync(null, EventArgs.Empty);
+            InnerActions.CheckYoutubeFollowsAsync(Context.Guild.Id);
         }
     }
 }
