@@ -52,7 +52,7 @@ namespace Qbey
         [RequireUserPermission(GuildPermission.Administrator)]
         public async Task forceCheck()
         {
-            InnerActions.CheckYoutubeFollowsAsync(null, EventArgs.Empty);
+            InnerActions.CheckYoutubeFollowsAsync(Context.Guild.Id);
         }
     }
 }

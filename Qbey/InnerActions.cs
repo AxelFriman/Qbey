@@ -8,36 +8,40 @@ using Discord.WebSocket;
 using Discord.Commands;
 using System.Timers;
 using Discord.Rest;
+using Qbey.SettingsControllers;
+using Qbey.Models;
 
 namespace Qbey
 {
     static class InnerActions 
     {
-        static public async Task sendAlert(string textToSend, EmbedBuilder eb = null) 
+        static public async Task sendAlert(ulong guild, string textToSend, EmbedBuilder eb = null)
         {
-            var channel = SettDriver.client.GetChannel(SettDriver.Sett.anounceChannel) as ITextChannel;
+            var channel = MainConfig.Instance.DiscordClient.GetChannel(MainConfig.Instance.GuildsSettings[guild].Sett.anounceChannel) as ITextChannel;
             var embed = eb?.Build();
             await channel.SendMessageAsync(text: textToSend, embed: embed);
         }
 
-        static public SocketGuildChannel findChannelByName(string channelName)
-        {
-            return SettDriver.client.GetGuild(SettDriver.Sett.client).Channels.First(x => x.Name == channelName);
-        }
+        //static public SocketGuildChannel findChannelByName(string channelName)
+        //{
+        //    return SettDriver.client.GetGuild(SettDriver.Sett.client).Channels.First(x => x.Name == channelName);
+        //} TODO delete this
 
-        static public async Task<List<RestGuildChannel>> createChannelsAsync(string channelName)
+        static public async Task<List<RestGuildChannel>> createChannelsAsync(ulong guild, string channelName)
         {
-            List<RestGuildChannel> res = new List<RestGuildChannel>(); 
-            if (SettDriver.Sett.categoryToCreateTxtChannels != 0)
+            var guildCfg = MainConfig.Instance.GuildsSettings[guild];
+            var discordClient = MainConfig.Instance.DiscordClient;
+            List<RestGuildChannel> res = new List<RestGuildChannel>();
+            if (guildCfg.Sett.categoryToCreateTxtChannels != 0)
             {
-                var newTextChannel = await SettDriver.client.GetGuild(SettDriver.Sett.client).CreateTextChannelAsync(channelName,
-                    props => props.CategoryId = SettDriver.Sett.categoryToCreateTxtChannels);
+                var newTextChannel = await discordClient.GetGuild(guild).CreateTextChannelAsync(channelName,
+                    props => props.CategoryId = guildCfg.Sett.categoryToCreateTxtChannels);
                 res.Add(newTextChannel);
             }
-            if (SettDriver.Sett.categoryToCreateVoiceChannels != 0)
+            if (guildCfg.Sett.categoryToCreateVoiceChannels != 0)
             {
-                var newVoiceChannel = await SettDriver.client.GetGuild(SettDriver.Sett.client).CreateVoiceChannelAsync(channelName,
-                    props => props.CategoryId = SettDriver.Sett.categoryToCreateVoiceChannels);
+                var newVoiceChannel = await discordClient.GetGuild(guild).CreateVoiceChannelAsync(channelName,
+                    props => props.CategoryId = guildCfg.Sett.categoryToCreateVoiceChannels);
                 res.Add(newVoiceChannel);
             }
             return res;
@@ -47,15 +51,20 @@ namespace Qbey
         {
             if (channelId > 0)
             {
-                await SettDriver.client.GetGuild(SettDriver.Sett.client).GetChannel(channelId)?.DeleteAsync();
+                var channel = MainConfig.Instance.DiscordClient.GetChannel(channelId) as ITextChannel;
+                await channel?.DeleteAsync();
             }
         }
 
-        static public async void CheckYoutubeFollowsAsync(Object source, EventArgs e)
-        {
-            foreach (var channel in SettDriver.Sett.follows)
+        static public async void CheckYoutubeFollowsAsync(ulong guild)
+        {            
+            var guildCfg = MainConfig.Instance.GuildsSettings[guild];
+            var guildFollows = MainConfig.Instance.GuildsFollows[guild];
+            var ytProcessor = new YoutubeProcessor(guild);
+            var notNullFollows = guildFollows.Sett.follows.Where<Follows>(x => x.followId > 0); //костыль для нулевого элемента, потом придумаю как сделать нормально TODO
+            foreach (var channel in notNullFollows)
             {
-                string lastVideoId = await YoutubeProcessor.getLastVideoFromWeb(channel.linkToVideosPage);
+                string lastVideoId = await ytProcessor.getLastVideoFromWeb(channel.linkToVideosPage);
                 bool isOnline;
                 if (String.IsNullOrEmpty(lastVideoId))
                 {
@@ -63,15 +72,15 @@ namespace Qbey
                 }
                 else
                 {
-                    isOnline = await YoutubeProcessor.isStream(lastVideoId);
+                    isOnline = await ytProcessor.isStream(lastVideoId);
                 }
-                bool wasOnline = HistoryDriver.getStatusById(channel.followId);
+                bool wasOnline = channel.lastStatusOnline;
                 if (isOnline != wasOnline)
                 {
-                    HistoryDriver.setStatusById(channel.followId, isOnline);
+                    channel.lastStatusOnline = isOnline;
                     if (isOnline)
                     {
-                        var createdChannels = await createChannelsAsync(channel.channelName);
+                        var createdChannels = await createChannelsAsync(guild, channel.channelName);
                         string txtToEmbed = String.Empty;
                         var eb = new EmbedBuilder();
                         foreach (var ch in createdChannels)
@@ -88,18 +97,18 @@ namespace Qbey
                                 channel.voiceChannel = ch.Id;
                             }
                         }
-                        SettDriver.saveSett();
+                        guildFollows.saveSett();
                         if (!String.IsNullOrEmpty(txtToEmbed))
                         {
                             txtToEmbed = "Смотреть вместе: " + txtToEmbed;
                             eb.WithDescription(txtToEmbed);
                         }
-                        string textForAlert = $"{channel.channelName}\nhttps://www.youtube.com/watch?v={lastVideoId} начала стрим.";
-                        if (channel.serverRoleId != 0 && SettDriver.Sett.pingRolesOnAlert)
+                        string textForAlert = $"{channel.channelName}  начала стрим.\nhttps://www.youtube.com/watch?v={lastVideoId}";
+                        if (channel.serverRoleId != 0 && guildCfg.Sett.pingRolesOnAlert)
                         {
                             textForAlert = $"<@&{channel.serverRoleId}> " + textForAlert;
                         }
-                        await sendAlert(textForAlert, eb);
+                        await sendAlert(guild, textForAlert, eb);
                     }
                     else
                     {
@@ -107,7 +116,7 @@ namespace Qbey
                         channel.textChannel = 0;
                         await deleteChannelAsync(channel.voiceChannel);
                         channel.voiceChannel = 0;
-                        await sendAlert($"{channel.channelName} закончила стрим.");
+                        await sendAlert(guild, $"{channel.channelName} закончила стрим.");
                     }
                 }
             }

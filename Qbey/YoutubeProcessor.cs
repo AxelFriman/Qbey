@@ -9,16 +9,21 @@ using System.Threading;
 using System.Threading.Tasks;
 using Discord;
 using Newtonsoft.Json;
+using Qbey.SettingsControllers;
 
 namespace Qbey
 {
     class YoutubeProcessor
     {
-        static string apiUrl = SettDriver.Sett.youTubeAPIURL;
-        static string apiKey = SettDriver.Sett.youTubeAPIToken;
-
+        static private MainConfig cfg = MainConfig.Instance;
+        static private string apiUrl = cfg.GlobalAppConfig.Sett.youTubeAPIURL;
+        string apiKey;
+        public YoutubeProcessor(ulong guild)
+        {
+            apiKey = cfg.GuildsSettings[guild].Sett.youTubeAPIToken;
+        }
         //Asks API if the given video is a live broadcast. Costs 1 quota
-        public static async Task<bool> isStream(string videoId)
+        public async Task<bool> isStream(string videoId)
         {
             Boolean isLive = false;
             string requestUrl = apiUrl + $"videos?part=snippet&id={videoId}&type=channel&key={apiKey}";
@@ -38,7 +43,7 @@ namespace Qbey
         }
 
         //Gets "/videos" page with webclient and parses response. Returns last video ID.
-        public static async Task<string> getLastVideoFromWeb(string linkToChannelVideosTab)
+        public async Task<string> getLastVideoFromWeb(string linkToChannelVideosTab) //TODO убрать статику, а то потоки
         {
             string htmlCode = "";
             string startString = "var ytInitialData = ";

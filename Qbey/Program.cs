@@ -45,12 +45,6 @@ namespace Qbey
 
             var logs = new LoggingService(_client, commandService);
 
-            //TODO move this away from here
-            Dictionary<ulong, Timer> timers = new Dictionary<ulong, Timer>();
-            foreach (var setts in cfg.GuildsSettings)
-            {
-                timers.Add(setts.Key, YoutubeCheckTimer.Create(setts.Key));
-            }
             await Task.Delay(-1);
         }
 
@@ -76,6 +70,13 @@ namespace Qbey
                 {
                     ErrorEvent?.Invoke(new LogMessage(LogSeverity.Error, "LoadSettings", $"Unable to load follows for {guild.Name} ({guild.Id})"));
                 }
+            }
+
+            //TODO move this away from here
+            Dictionary<ulong, Timer> timers = new Dictionary<ulong, Timer>();
+            foreach (var setts in MainConfig.Instance.GuildsSettings)
+            {
+                timers.Add(setts.Key, YoutubeCheckTimer.Create(setts.Key));
             }
         }
 
